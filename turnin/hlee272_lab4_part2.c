@@ -11,14 +11,13 @@
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
-enum States {Start, init, x, y, pound, wait, wait2, unlock, lock} state;
+enum States {Start, init, wait, inc, dec, zero} state;
 void Tick();
 
 int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRA = 0x00; PORTA = 0xFF; //input
-	DDRB = 0xFF; PORTB = 0x02;
-	DDRC = 0xFF; PORTC = 0x00; //output	
+	DDRC = 0xFF; PORTC = 0x07; //output	
 	state = Start;    
  /* Insert your solution below */
     while (1) {
@@ -29,56 +28,56 @@ void Tick() {
 	switch(state) {//transistions
 
 	case Start:
+	PORTC = 0x07;
 	state = init; 
 	break; 
 
 	case init: 
-	if ((PINA & 0x07) == 0x01) {
-		state = x; 
+	if ((PINA & 0x01) == 0x01) {
+		state = inc; 
 	}
 	
-	else if ((PINA & 0x07) == 0x02) {
-		state = y;
+	else if ((PINA & 0x02) == 0x02) {
+		state = dec;
 
 	}
 
-	else if ((PINA & 0x07) == 0x04) {
-		state = pound;
+	else if ((PINA & 0x03) == 0x03) {
+		state = zero;
 	}
 	
 	else {
 		state = init;
 	} 
 	break;
-
-	case x: 
-	state = lock;
-	break;
 	
-	case y: 
-	state = wait2;
-	break;
-	
-	case pound: 
-	state = wait;
-	break;
-
 	case wait: 
-	if ((PINA & 0x07) == 0x02) {
-		state = y;
+	if (((PINA & 0x03) == 0x01) || ((PINA & 0x03) == 0x02)) {
+		state = wait;
 	}
-	else if ((~PINA & 0x07) == 0x02) {
-		state = lock;
+	else if ((PINA & 0x03) == 0x03) {
+		state = zero;
 	}
-
 	else {
 		state = init;
 	}
-	break;
+	break; 
 
+	case inc: 
+	state = wait;
+	break;
 	
-	case wait2: 
-	if ((~PINA
+	case dec: 
+	state = wait;
+	break;
+	
+	case zero: 
+	if (((PINA & 0x03) == 0x01) || ((PINA & 0x03) == 0x02)) {
+		state = zero;
+	}
+	else {
+		state = init;
+	}
 	break;
 
 	default: 
@@ -88,11 +87,14 @@ void Tick() {
 
 switch (state) //state actions
 {
-case Start: 
+case Start:
+PORTC = 0x07; 
 break;
 
 case init:
-PORTC = 0x07;
+break;
+
+case wait;
 break;
 
 case inc:
