@@ -94,7 +94,7 @@ break;
 case init:
 break;
 
-case wait;
+case wait:
 break;
 
 case inc:
